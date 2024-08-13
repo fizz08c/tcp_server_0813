@@ -318,7 +318,7 @@ void Write_MultiHoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg)//0x10
 //响应收到的报文
 void ModbusRsData_Act(SModbus_TCP_DataUnit_Rx* RsMsg)
 {
-  void (*pAct)(SModbus_TCP_DataUnit_Rx*) = NULL;
+  ResponseAct pAct;
   switch (RsMsg->modbus_funcode)
   {
     case CAN_Fun_Code_02:
