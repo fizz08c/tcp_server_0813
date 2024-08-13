@@ -15,7 +15,7 @@ typedef unsigned long    ulong;
 
 typedef int (*pGet)(void);
 typedef void (*pSet)(int);
-typedef void (*ResponseAct)(SModbus_TCP_DataUnit*);
+typedef void (*ResponseAct)(SModbus_TCP_DataUnit_Rx*);
 
 typedef struct  {
     ushort Addr;
@@ -113,7 +113,7 @@ typedef struct
   Modbus_TCP head;
   unsigned char modbus_funcode;
   unsigned char data[254];
-}SModbus_TCP_DataUnit_Rs;
+}SModbus_TCP_DataUnit_Rx;
 typedef struct 
 {
     /* data */
@@ -231,6 +231,24 @@ void sPackage3xData(const CanSt3X * arrar3X,ushort length,unsigned char *pdata);
 ushort Modbus_Proc_Data(unsigned char *pdata, const ushort len);
 
 void TCP_Modbus_Send(ushort FunCode, ushort startaddr, ushort len, unsigned char * SendData);
+
+ushort strlen_uc(const unsigned char* ustr);
+void get_MBAP_FromTCPdata(unsigned char* data,Modbus_TCP* head);
+void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit_Rx* res);
+//读离散输入寄存器
+void Read_bit(SModbus_TCP_DataUnit_Rx* RsMsg);//0x02
+//读保持寄存器
+void Read_HoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg);//0x03
+//读输入寄存器
+void Read_InputReg(SModbus_TCP_DataUnit_Rx* RsMsg);//0x04
+//写单个线圈寄存器
+void Write_bit(SModbus_TCP_DataUnit_Rx* RsMsg);//0x05
+//写单个保持寄存器
+void Write_SingleHoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg);//0x06
+//写多个保持寄存器
+void Write_MultiHoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg);//0x10
+//响应收到的报文
+void ModbusRsData_Act(SModbus_TCP_DataUnit_Rx* RsMsg);
 
 ////*****************************************************************************
 ////函数功能：连续8位合成16位

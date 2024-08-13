@@ -3,7 +3,7 @@
  File name:   Modbus.c
  Description: 
  Author:      Zhang Jiawei
- Version:     V00
+ Version:     V01
  Data:        2024-8
  *****************************************************************/
 #include <stdlib.h>
@@ -228,7 +228,7 @@ void TCP_Modbus_Send(ushort FunCode, ushort startaddr, ushort len, unsigned char
 //入参：*ustr-数据指针
 //出参：数据长度
 //*****************************************************************************
-size_t strlen_uc(const unsigned char* ustr) {
+ushort strlen_uc(const unsigned char* ustr) {
     if (ustr == NULL) {
         return 0;
     }
@@ -245,7 +245,7 @@ size_t strlen_uc(const unsigned char* ustr) {
 //*****************************************************************************
 void get_MBAP_FromTCPdata(unsigned char* data,Modbus_TCP* head) {
     // 确保传入的数据长度足够
-    size_t slen =strlen_uc(data);
+    ushort slen =strlen_uc(data);
     if (slen <= 7) 
     {
         return;
@@ -258,50 +258,34 @@ void get_MBAP_FromTCPdata(unsigned char* data,Modbus_TCP* head) {
 }
 //*****************************************************************************
 //函数功能：从Modbus-TCP报文中获取Modbus报文数据
-//入参：*src-源数据指针，*pdata_modbus-modbus报文指针
-//出参：修改后的modbus报文指针
+//入参：*src-源数据指针，*pdata_modbus-modbus报文指针,*res-modbus数据结构体指针
+//出参：修改后的modbus报文指针、数据结构体指针
 //*****************************************************************************
-void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus)
+void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit_Rx* res)
 {
-    size_t slen =strlen_uc(src);
+    ushort slen =strlen_uc(src);
     get_MBAP_FromTCPdata(src,&rxModbus_TCPHead);
     memcpy(pdata_modbus,(void*)(src+7),slen-7);
-
-}
-//*****************************************************************************
-//函数功能：从Modbus报文中获取Modbus功能码、数据域
-//入参：*src-源数据指针，*res-modbus报文结构体指针
-//出参：修改后的modbus报文结构体指针
-//*****************************************************************************
-void SplitModbusData(unsigned char* src,SModbus_TCP_DataUnit* res)
-{
-    size_t src_len =strlen_uc(src);
-    if(strlen_uc(src) < 1)
+    ushort src_len =strlen_uc(pdata_modbus);
+    if(strlen_uc(pdata_modbus) < 1)
     {
         return;
     }
     //modbus功能码
-    res->modbus_funcode =src[0];
+    res->modbus_funcode =pdata_modbus[0];
     //modbus数据域
-    size_t slenofdata = src_len-1>MAX_LEN_MODBUSTCPDATA?MAX_LEN_MODBUSTCPDATA:src_len-1;
-    memcpy(res->data,(void*)(src+1),slenofdata);
+    ushort slenofdata = src_len-1>MAX_LEN_MODBUSTCPDATA?MAX_LEN_MODBUSTCPDATA:src_len-1;
+    memcpy(res->data,(void*)(pdata_modbus+1),slenofdata);
+
 }
-//*****************************************************************************
-//函数功能：根据响应报文，执行操作
-//入参：*src-源数据指针，*res-modbus报文结构体指针
-//出参：修改后的modbus报文结构体指针
-//*****************************************************************************
-void getFuncodeFromData()
-{
-   
-}
+
 //读离散输入寄存器
-void Read_bit(SModbus_TCP_DataUnit* RsMsg)//0x02
+void Read_bit(SModbus_TCP_DataUnit_Rx* RsMsg)//0x02
 {
 
 }
 //读保持寄存器
-void Read_HoldingReg(SModbus_TCP_DataUnit* RsMsg)//0x03
+void Read_HoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg)//0x03
 {
    void* senddata = NULL;
    Start_address = iDataCom_8to16(RsMsg->data + 1);
@@ -311,30 +295,30 @@ void Read_HoldingReg(SModbus_TCP_DataUnit* RsMsg)//0x03
    TCP_Modbus_Send(RsMsg->modbus_funcode,Start_address,Modbus_Length,(unsigned char*)senddata);
 }
 //读输入寄存器
-void Read_InputReg(SModbus_TCP_DataUnit* RsMsg)//0x04
+void Read_InputReg(SModbus_TCP_DataUnit_Rx* RsMsg)//0x04
 {
 
 }
 //写单个线圈寄存器
-void Write_bit(SModbus_TCP_DataUnit* RsMsg)//0x05
+void Write_bit(SModbus_TCP_DataUnit_Rx* RsMsg)//0x05
 {
 
 }
 //写单个保持寄存器
-void Write_SingleHoldingReg(SModbus_TCP_DataUnit* RsMsg)//0x06
+void Write_SingleHoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg)//0x06
 {
 
 }
 //写多个保持寄存器
-void Write_MultiHoldingReg(SModbus_TCP_DataUnit* RsMsg)//0x10
+void Write_MultiHoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg)//0x10
 {
 
 }
 
 //响应收到的报文
-void ModbusRsData_Act(SModbus_TCP_DataUnit* RsMsg)
+void ModbusRsData_Act(SModbus_TCP_DataUnit_Rx* RsMsg)
 {
-  void (*pAct)(SModbus_TCP_DataUnit*) = NULL;
+  void (*pAct)(SModbus_TCP_DataUnit_Rx*) = NULL;
   switch (RsMsg->modbus_funcode)
   {
     case CAN_Fun_Code_02:
