@@ -3,7 +3,7 @@
  File name:   Modbus.c
  Description: 
  Author:      Zhang Jiawei
- Version:     V03
+ Version:     V04
  Data:        2024-8
  *****************************************************************/
 #include <stdlib.h>
