@@ -22,6 +22,7 @@ int main ()
     	int num;
     	int sin_size;                      	// to store struct size
     	char sdbuf[LENGTH];          	// Send buffer
+		uchar revbuf[LENGTH];
     	struct sockaddr_in addr_local; 
     	struct sockaddr_in addr_remote; 
     //	char sendstr[16]= {"123456789 abcde"}; 
@@ -72,7 +73,9 @@ int main ()
         	} else {
             	printf ("OK: Server has got connect from %s.\n", inet_ntoa(addr_remote.sin_addr)); 
         	}
-        
+			printf("sockfd = %d\n",sockfd);
+			printf("nsockfd = %d\n",nsockfd);
+
         	/* Child process */
         	if(!fork())                    
         	{  
@@ -104,10 +107,27 @@ int main ()
                     	close(nsockfd);
                     	exit(1);
                 	}
+
+					if (0 < (recv(nsockfd, revbuf, LENGTH, 0)))
+					{
+						printf("revbuf[0] = %d\n",revbuf[0]);
+						printf("revbuf[1] = %d\n",revbuf[1]);
+						printf("revbuf[2] = %d\n",revbuf[2]);
+						printf("revbuf[3] = %d\n",revbuf[3]);
+						printf("revbuf[4] = %d\n",revbuf[4]);
+						printf("revbuf[5] = %d\n",revbuf[5]);
+						printf("revbuf[6] = %d\n",revbuf[6]);
+						printf("revbuf[7] = %d\n",revbuf[7]);
+						printf("revbuf[8] = %d\n",revbuf[8]);
+						printf("revbuf[9] = %d\n",revbuf[9]);
+						printf("revbuf[10] = %d\n",revbuf[10]);
+						printf("revbuf[11] = %d\n",revbuf[11]);
+					}
+
                 	printf("OK: Sent %d bytes sucessful, please enter again.\n", num);  
             	}
          	}  
-
+			printf("close\n");
          	close(nsockfd);  
          	while(waitpid(-1, NULL, WNOHANG) > 0);    
      }    
