@@ -36,7 +36,7 @@
 #	rm -f *.o $(TARGET)
 
 # 变量定义
-TARGET = tcp_server
+TARGET = ./bin/tcp_server
 CC = aarch64-buildroot-linux-gnu-gcc
 CFLAGS = -Iinc -Wall -g
 LDFLAGS = 
