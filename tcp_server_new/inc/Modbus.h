@@ -42,7 +42,9 @@ typedef struct  {
 #define CAN_Fun_Code_10                 0x10
 #define CAN_Fun_Code_64                 0x64
 #define CAN_Fun_Code_65                 0x65
-#define MAX_LEN_MODBUSTCPDATA           (254)
+#define MAX_LEN_MODBUSTCPDATA           (252)
+#define MPBA_LENGTH                     (7)
+#define MODBUSFUNCODE_LENTH             (1)
 
 extern volatile ushort Fun_Code ;
 extern volatile ushort Start_address ;
@@ -107,55 +109,18 @@ unsigned char ucCRC_H;
 unsigned char ucCRC_L;
 }Can_Message_Modbus;
 
-/*Modbus响应报文结构体*/
+/*Modbus报文结构体*/
 typedef struct 
 {
   Modbus_TCP head;
   unsigned char modbus_funcode;
-  unsigned char data[252];
-}SModbus_TCP_DataUnit_Rx;
-typedef void (*ResponseAct)(SModbus_TCP_DataUnit_Rx*);
-typedef struct 
-{
-    /* data */
-};
+  uchar modbus_addr;
+  unsigned char data[MAX_LEN_MODBUSTCPDATA];
+}SModbus_TCP_DataUnit;
+typedef void (*ResponseAct)(SModbus_TCP_DataUnit*);
+typedef void (*GetAnswerFrame)(SModbus_TCP_DataUnit*,SModbus_TCP_DataUnit*);
 
-void sSetEPWM1CMPA(ushort value);
-ushort sGetEPWM1CMPA();
-void sSetEPWM1CMPB(ushort value);
-ushort sGetEPWM1CMPB();
-void sSetEPWM2CMPA(ushort value);
-ushort sGetEPWM2CMPA();
-void sSetEPWM2CMPB(ushort value);
-ushort sGetEPWM2CMPB();
-void sSetEPWM3CMPA(ushort value);
-ushort sGetEPWM3CMPA();
-void sSetEPWM3CMPB(ushort value);
-ushort sGetEPWM3CMPB();
-void sSetEPWM4CMPA(ushort value);
-ushort sGetEPWM4CMPA();
-void sSetEPWM4CMPB(ushort value);
-ushort sGetEPWM4CMPB();
-void sSetEPWM5CMPA(ushort value);
-ushort sGetEPWM5CMPA();
-void sSetEPWM5CMPB(ushort value);
-ushort sGetEPWM5CMPB();
-void sSetEPWM6CMPA(ushort value);
-ushort sGetEPWM6CMPA();
-void sSetEPWM6CMPB(ushort value);
-ushort sGetEPWM6CMPB();
-void sSetEPWM7CMPA(ushort value);
-ushort sGetEPWM7CMPA();
-void sSetEPWM7CMPB(ushort value);
-ushort sGetEPWM7CMPB();
-void sSetEPWM8CMPA(ushort value);
-ushort sGetEPWM8CMPA();
-void sSetEPWM8CMPB(ushort value);
-ushort sGetEPWM8CMPB();
-void sSetEPWM9CMPA(ushort value);
-ushort sGetEPWM9CMPA();
-void sSetEPWM9CMPB(ushort value);
-ushort sGetEPWM9CMPB();
+
 void sSetYear(ushort value);
 ushort sGetYear();
 void sSetMonth(ushort value);
@@ -169,42 +134,6 @@ uint sGetReactivePower();
 
 void sFlashControl(ushort value);
 ushort sFlashGet();
-void sSetDCBatteryVolt_coefficient(ushort value);
-ushort sGetDCBatteryVolt_coefficient();
-void sSetDCBatteryVolt_offset(ushort value);
-ushort sGetDCBatteryVolt_offset();
-void sSetDCBusVolt_coefficient(ushort value);
-ushort sGetDCBusVolt_coefficient();
-void sSetDCBusVolt_offset(ushort value);
-ushort sGetDCBusVolt_offset();
-void sSetDCCur_coefficient(ushort value);
-ushort sGetDCCur_coefficient();
-void sSetDCCur_offset(ushort value);
-ushort sGetDCCur_offset();
-void sSetACVolt_A_coefficient(ushort value);
-ushort sGetACVolt_A_coefficient();
-void sSetACVolt_A_offset(ushort value);
-ushort sGetACVolt_A_offset();
-void sSetACVolt_B_coefficient(ushort value);
-ushort sGetACVolt_B_coefficient();
-void sSetACVolt_B_offset(ushort value);
-ushort sGetACVolt_B_offset();
-void sSetACVolt_C_coefficient(ushort value);
-ushort sGetACVolt_C_coefficient();
-void sSetACVolt_C_offset(ushort value);
-ushort sGetACVolt_C_offset();
-void sSetACCur_A_coefficient(ushort value);
-ushort sGetACCur_A_coefficient();
-void sSetACCur_A_offset(ushort value);
-ushort sGetACCur_A_offset();
-void sSetACCur_B_coefficient(ushort value);
-ushort sGetACCur_B_coefficient();
-void sSetACCur_B_offset(ushort value);
-ushort sGetACCur_B_offset();
-void sSetACCur_C_coefficient(ushort value);
-ushort sGetACCur_C_coefficient();
-void sSetACCur_C_offset(ushort value);
-ushort sGetACCur_C_offset();
 
 //*****************************************************************************
 //函数功能：Modbus数据初始化
@@ -235,21 +164,21 @@ void TCP_Modbus_Send(ushort FunCode, ushort startaddr, ushort len, unsigned char
 
 ushort strlen_uc(const unsigned char* ustr);
 void get_MBAP_FromTCPdata(unsigned char* data,Modbus_TCP* head);
-void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit_Rx* res);
+void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit* res);
 //读离散输入寄存器
-void Read_bit_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x02
+void Read_bit_Act(SModbus_TCP_DataUnit* RxMsg);//0x02
 //读保持寄存器
-void Read_HoldingReg_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x03
+void Read_HoldingReg_Act(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* TxMsg);//0x03
 //读输入寄存器
-void Read_InputReg_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x04
+void Read_InputReg_Act(SModbus_TCP_DataUnit* RxMsg);//0x04
 //写单个线圈寄存器
-void Write_bit_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x05
+void Write_bit_Act(SModbus_TCP_DataUnit* RxMsg);//0x05
 //写单个保持寄存器
-void Write_SingleHoldingReg_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x06
+void Write_SingleHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg);//0x06
 //写多个保持寄存器
-void Write_MultiHoldingReg_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x10
+void Write_MultiHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg);//0x10
 //响应收到的报文
-void ModbusRsData_Act(SModbus_TCP_DataUnit_Rx* RsMsg);
+void ModbusRsData_Act(SModbus_TCP_DataUnit* RxMsg);
 
 ////*****************************************************************************
 ////函数功能：连续8位合成16位

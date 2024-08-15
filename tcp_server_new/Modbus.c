@@ -14,6 +14,7 @@
 
 volatile ushort Fun_Code = 0;
 volatile ushort Start_address = 0;
+volatile ushort reg_num = 0;
 volatile ushort Modbus_Length = 0;
 volatile ushort End_address = 0;
 
@@ -261,7 +262,7 @@ void get_MBAP_FromTCPdata(unsigned char* data,Modbus_TCP* head) {
 //入参：*src-源数据指针，*pdata_modbus-modbus报文指针,*res-modbus数据结构体指针
 //出参：修改后的modbus报文指针、数据结构体指针
 //*****************************************************************************
-void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit_Rx* res)
+void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit* res)
 {
     ushort slen =strlen_uc(src);
     get_MBAP_FromTCPdata(src,&rxModbus_TCPHead);
@@ -275,74 +276,370 @@ void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_T
     res->modbus_funcode =pdata_modbus[0];
     //modbus数据域
     ushort slenofdata = src_len-1>MAX_LEN_MODBUSTCPDATA?MAX_LEN_MODBUSTCPDATA:src_len-1;
-    memcpy(res->data,(void*)(pdata_modbus+1),slenofdata);
-
+    memcpy(res->data,(void*)(pdata_modbus+1),slenofdata); 
 }
 
 //读离散输入寄存器
-void Read_bit(SModbus_TCP_DataUnit_Rx* RsMsg)//0x02
+void Read_bit_Act(SModbus_TCP_DataUnit* RxMsg)//0x02
 {
 
+
+
 }
+//*****************************************************************************
+//函数功能：连续uchar合成int
+//入参：*arr-源数组，arr_len-数组长度，start_index-起始下标
+//出参：int
+//*****************************************************************************
+int combine_bytes_to_int(const uchar *arr, int arr_len, int start_index) {
+    if (arr == NULL || start_index < 0 || start_index + 3 >= arr_len) {
+        return 0;
+    }
+
+    int result = 0;
+
+    result |= ((int)arr[start_index] << 24);
+    result |= ((int)arr[start_index + 1] << 16);
+    result |= ((int)arr[start_index + 2] << 8);
+    result |= (int)arr[start_index + 3];
+
+    return result;
+}
+//*****************************************************************************
+//函数功能：连续uchar合成uint
+//入参：*arr-源数组，arr_len-数组长度，start_index-起始下标
+//出参：uint
+//*****************************************************************************
+uint combine_bytes_to_uint(const uchar *arr, int arr_len, int start_index) {
+    if (arr == NULL || start_index < 0 || start_index + 3 >= arr_len) {
+        return 0;
+    }
+
+    uint result = 0;
+
+    result |= ((unsigned int)arr[start_index] << 24);
+    result |= ((unsigned int)arr[start_index + 1] << 16);
+    result |= ((unsigned int)arr[start_index + 2] << 8);
+    result |= (unsigned int)arr[start_index + 3];
+
+    return result;
+}
+//*****************************************************************************
+//函数功能：连续uchar合成short
+//入参：*arr-源数组，arr_len-数组长度，start_index-起始下标
+//出参：short
+//*****************************************************************************
+short combine_bytes_to_short(const uchar *arr, int arr_len, int start_index) {
+    if (arr == NULL || start_index < 0 || start_index + 1 >= arr_len) {
+        // Invalid input, return some default value or handle error
+        return 0;
+    }
+
+    short result = 0;
+
+    result |= (arr[start_index] << 8);
+    result |= (arr[start_index + 1]);
+
+    return result;
+}
+//*****************************************************************************
+//函数功能：连续uchar合成ushort
+//入参：*arr-源数组，arr_len-数组长度，start_index-起始下标
+//出参：ushort
+//*****************************************************************************
+ushort combine_bytes_to_ushort(const uchar *arr, int arr_len, int start_index) {
+    if (arr == NULL || start_index < 0 || start_index + 1 >= arr_len) {
+        // Invalid input, return some default value or handle error
+        return 0;
+    }
+
+    ushort result = 0;
+
+    result |= (arr[start_index] << 8);
+    result |= (arr[start_index + 1]);
+
+    return result;
+}
+//*****************************************************************************
+//函数功能：连续uchar合成ushort
+//入参：*arr-源数组，arr_len-数组长度，start_index-起始下标
+//出参：ushort
+//*****************************************************************************
+void split_data_to_array(void* src, ushort elem_size, int len, unsigned char** des) {
+    // 检查输入参数
+    if(src == NULL || len <= 0 || des == NULL || elem_size <= 0) {
+        return;
+    }
+
+    // 如果 des 是 NULL，分配新内存
+    if (*des == NULL) {
+        *des = (unsigned char*)malloc(len * sizeof(unsigned char));
+        if (*des == NULL) {
+            // 分配失败，退出函数
+            return;
+        }
+    } else {
+        // 字符串长度检查，并重新分配内存
+        *des = (unsigned char*)realloc(*des, len * sizeof(unsigned char));
+        if (*des == NULL) {
+            // 重新分配失败，退出函数
+            return;
+        }
+    }
+
+    // 将数据从 src 复制到 des
+    unsigned char* src_bytes = (unsigned char*)src;
+    for(int i = 0; i < len; i++) {
+        unsigned char* element = src_bytes + i * elem_size;
+        (*des)[i] = *element;
+    }
+}
+
 //读保持寄存器
-void Read_HoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg)//0x03
+void Read_HoldingReg_Act(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* TxMsg)//0x03
 {
-   void* senddata = NULL;
-   Start_address = iDataCom_8to16(RsMsg->data + 1);
-   Modbus_Length = iDataCom_8to16(RsMsg->data  + 3);
-   End_address = Start_address + Modbus_Length - 1;
-   sPackage3xData((CanSt3X*)&Modbus_3xArray, w3xLen, (unsigned char*)&senddata);
-   TCP_Modbus_Send(RsMsg->modbus_funcode,Start_address,Modbus_Length,(unsigned char*)senddata);
+
+    Start_address = combine_bytes_to_ushort(TxMsg->data,MAX_LEN_MODBUSTCPDATA,0);//首字节
+    reg_num = combine_bytes_to_ushort(TxMsg->data,MAX_LEN_MODBUSTCPDATA,2);//第3个字节
+    Modbus_Length = combine_bytes_to_ushort(RxMsg->data,MAX_LEN_MODBUSTCPDATA,0);//首字节
+    End_address   = Start_address + Modbus_Length - 1;
+    int recVal    =  0;
+    for(int i = 0 ;i < Modbus_Length;i++)
+    {
+        for(int j = 0 ;j < w4xLen;j++)
+        {
+            int count = Modbus_4xArray[j].Length;
+        if((Start_address+count*i == Modbus_4xArray[j].Addr))
+        {
+            recVal = combine_bytes_to_int(RxMsg->data,MAX_LEN_MODBUSTCPDATA,1+count*i);//第2个字节后，两个寄存器内容合成一个int
+            recVal = Modbus_4xArray[j].imax>recVal?recVal:Modbus_4xArray[j].imax;
+            recVal = Modbus_4xArray[j].imin<recVal?recVal:Modbus_4xArray[j].imin;
+            Modbus_4xArray[j].iSet(recVal);
+            printf("Modbus_4xArray[%d].val=%d",i,recVal);
+        }
+     }
+     
+   }
+   
 }
 //读输入寄存器
-void Read_InputReg(SModbus_TCP_DataUnit_Rx* RsMsg)//0x04
-{
+void Read_InputReg_Act(SModbus_TCP_DataUnit* RxMsg, SModbus_TCP_DataUnit* TxMsg) {
+    // 读输入寄存器
+    unsigned short Start_address = combine_bytes_to_ushort(TxMsg->data, MAX_LEN_MODBUSTCPDATA, 0);
+    unsigned short reg_num = combine_bytes_to_ushort(TxMsg->data, MAX_LEN_MODBUSTCPDATA, 2);
+    unsigned short End_address = Start_address + reg_num - 1;
 
+    int regValue = 0;
+    int byteCount = 0;
+
+    // 准备返回消息结构
+    RxMsg->head = TxMsg->head;
+    RxMsg->modbus_funcode = 0x04;  // 功能码 04
+
+    // 遍历需要读取的寄存器
+    for (int i = 0; i < w3xLen; i++) {
+        if (Modbus_3xArray[i].Addr >= Start_address && Modbus_3xArray[i].Addr <= End_address) {
+            regValue = Modbus_3xArray[i].iGet();
+            // 处理数据（高字节和低字节）
+            RxMsg->data[byteCount++] = (regValue >> 8) & 0xFF;
+            RxMsg->data[byteCount++] = regValue & 0xFF;
+        }
+    }
+    RxMsg->data[0] = byteCount;
+    // 调整 Modbus 长度字段
+    RxMsg->head.usLength = byteCount + 2;
 }
+
 //写单个线圈寄存器
-void Write_bit(SModbus_TCP_DataUnit_Rx* RsMsg)//0x05
-{
+void Write_bit_Act(SModbus_TCP_DataUnit* TxMsg, ushort slaveid, ushort addr, ushort val) {
+    TxMsg->head.unit_id = slaveid;
+    TxMsg->head.usSerialNum = rxModbus_TCPHead.usSerialNum++;
+    TxMsg->modbus_funcode = 0x05; // 设置功能码为0x05
 
+    // 地址2个字节
+    split_data_to_array(&addr, sizeof(ushort), 1, TxMsg->modbus_addr);
+
+    // 填充数据，在Modbus协议里，0xFF00表示打开线圈，0x0000表示关闭线圈
+    TxMsg->data[0] = (val >> 8) & 0xFF;
+    TxMsg->data[1] = val & 0xFF;
+
+    // 设置Modbus头的长度字段，功能码1字节 + 2字节地址 + 2字节数据，总共5字节
+    TxMsg->head.usLength = 6;  // 单位：字节，注意这里还包括单元标识符1个字节但不包括自身
 }
-//写单个保持寄存器
-void Write_SingleHoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg)//0x06
-{
+void Write_SingleHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg, SModbus_TCP_DataUnit* TxMsg) {
+    // 提取地址和要写入的值
+    ushort address = combine_bytes_to_ushort(RxMsg->data, MAX_LEN_MODBUSTCPDATA, 0);
+    ushort value = combine_bytes_to_ushort(RxMsg->data, MAX_LEN_MODBUSTCPDATA, 2);
 
+    // 检查地址是否合法
+    // if (address >= NUM_HOLDING_REGS) {
+    //     printf("Error: Invalid holding register address\n");
+    //     return;
+    // }
+
+    // 更新保持寄存器数据
+
+
+    // 构建响应消息
+    TxMsg->head = RxMsg->head;
+    TxMsg->modbus_funcode = 0x06;
+    memcpy(TxMsg->data, RxMsg->data, 4);  // 复制前4个字节（地址和值）
+
+    // 设置Modbus头信息长度字段
+    TxMsg->head.usLength = 6;  // 功能码1字节 + 2字节地址 + 2字节数据，总共5字节 + 单元标识符1字节
 }
-//写多个保持寄存器
-void Write_MultiHoldingReg(SModbus_TCP_DataUnit_Rx* RsMsg)//0x10
-{
+void Write_MultiHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg, SModbus_TCP_DataUnit* TxMsg) {
+    // 提取起始地址和寄存器数量
+    ushort start_address = combine_bytes_to_ushort(RxMsg->data, MAX_LEN_MODBUSTCPDATA, 0);
+    ushort num_registers = combine_bytes_to_ushort(RxMsg->data, MAX_LEN_MODBUSTCPDATA, 2);
+    uchar byte_count = RxMsg->data[4];
 
+    // 检查地址和数量是否合法
+    // if (start_address + num_registers > NUM_HOLDING_REGS) {
+    //     printf("Error: Invalid holding register address or quantity\n");
+    //     return;
+    // }
+
+    // 写入保持寄存器数据
+    for (int i = 0; i < num_registers; i++) {
+        ushort value = combine_bytes_to_ushort(RxMsg->data, MAX_LEN_MODBUSTCPDATA, 5 + 2 * i);
+    }
+
+    // 构建响应消息
+    TxMsg->head = RxMsg->head;
+    TxMsg->modbus_funcode = 0x10;
+    TxMsg->data[0] = (start_address >> 8) & 0xFF;
+    TxMsg->data[1] = start_address & 0xFF;
+    TxMsg->data[2] = (num_registers >> 8) & 0xFF;
+    TxMsg->data[3] = num_registers & 0xFF;
+
+    // 设置Modbus头信息长度字段
+    TxMsg->head.usLength = 6;  // 功能码1字节 + 2字节起始地址 + 2字节寄存器数量，总共5字节 + 单元标识符1字节
 }
 
 //响应收到的报文
-void ModbusRsData_Act(SModbus_TCP_DataUnit_Rx* RsMsg)
+void ModbusRsData_Act(SModbus_TCP_DataUnit* RxMsg)
 {
   ResponseAct pAct;
-  switch (RsMsg->modbus_funcode)
+  switch (RxMsg->modbus_funcode)
   {
     case CAN_Fun_Code_02:
-        pAct = &Read_bit;
+        pAct = &Read_bit_Act;
         break;
     case CAN_Fun_Code_03:
-        pAct = &Read_HoldingReg;
+        pAct = &Read_HoldingReg_Act;
         break;
     case CAN_Fun_Code_04:
-        pAct = &Read_InputReg;
+        pAct = &Read_InputReg_Act;
         break;
     case CAN_Fun_Code_05:
-        pAct = &Write_bit;
+        pAct = &Write_bit_Act;
         break;
     case CAN_Fun_Code_06:
-        pAct = &Write_SingleHoldingReg;
+        pAct = &Write_SingleHoldingReg_Act;
         break;
     case CAN_Fun_Code_10:
-        pAct = &Write_MultiHoldingReg;
+        pAct = &Write_MultiHoldingReg_Act;
         break;
     default:
         break;
   }
-  pAct(RsMsg);
+  pAct(RxMsg);
+}
+//回复读bit请求
+void getAnswer_Read_bit(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* ans)//0x02
+{
+  
+}
+//回复读保持寄存器请求
+void getAnswer_Read_HoldingReg(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* ans)//0x03
+{
+     // 功能码 02 示例处理: 读取离散输入
+    ans->modbus_funcode = 0x02;
+    // 假设读取 n 个离散输入，举例回复 2 个字节数据
+    ans->data[0] = 0x02;
+    ans->data[1] = 0x01;  // 举例：第1字节的值
+    ans->data[2] = 0x00;  // 第2字节的值
+    ans->head.usLength = htons(3+2); // TCP头部6字节，功能码和数据内容3字节
+}
+//回复写输入寄存器请求
+void getAnswer_Write_InputReg(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* ans)//0x04
+{
+    // 功能码 04 示例处理: 读取输入寄存器
+    ans->modbus_funcode = 0x04;
+    // 假设读取 n 个保持寄存器，举例回复 4 个字节数据
+    ans->data[0] = 0x04; // 字节数
+    ans->data[1] = 0x00; // 第1个输入寄存器高字节
+    ans->data[2] = 0x03; // 第1个输入寄存器低字节
+    ans->data[3] = 0x00; // 第2个输入寄存器高字节
+    ans->data[4] = 0x07; // 第2个输入寄存器低字节
+    ans->head.usLength = htons(5+2); // 功能码1字节+数据5字节+modbus头部2字节
+}
+//回复写bit请求
+void getAnswer_Write_bit(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* ans)//0x05
+{
+ // 功能码 05 示例处理: 写单个线圈
+    ans->modbus_funcode = 0x05;
+    // 举例复制同样的数据
+    ans->data[0] = RxMsg->data[0];
+    ans->data[1] = RxMsg->data[1];
+    ans->data[2] = RxMsg->data[2];
+    ans->data[3] = RxMsg->data[3];
+    ans->head.usLength = htons(4+2); // TCP头部6字节，功能码和数据内容4字节
+}
+//回复写单个保持寄存器请求
+void getAnswer_Write_HoldingReg(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* ans)//0x06
+{
+   // 功能码 06 示例处理: 写单个寄存器
+    ans->modbus_funcode = 0x06;
+    // 举例复制同样的数据
+    ans->data[0] = RxMsg->data[0];
+    ans->data[1] = RxMsg->data[1];
+    ans->data[2] = RxMsg->data[2];
+    ans->data[3] = RxMsg->data[3];
+    ans->head.usLength = htons(4+2); // TCP头部6字节，功能码和数据内容4字节
+}
+//回复写多个保持寄存器请求
+void getAnswer_Write_MultiHoldingReg(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* ans)//0x010
+{
+   // 功能码 10 示例处理: 写多个寄存器
+    ans->modbus_funcode = 0x10;
+    // 举例复制写入的起始地址和数量
+    ans->data[0] = RxMsg->data[0];
+    ans->data[1] = RxMsg->data[1];
+    ans->data[2] = RxMsg->data[2];
+    ans->data[3] = RxMsg->data[3];
+    ans->head.usLength = htons(4+2); // TCP头部6字节，功能码和数据内容4字节
+}
+
+//生成回复报文
+void AnswerSwitch(SModbus_TCP_DataUnit* RxMsg,uchar* ans)
+{
+    GetAnswerFrame pAns = NULL;
+    switch (RxMsg->modbus_funcode)
+    {
+    case CAN_Fun_Code_02:
+        pAns = &getAnswer_Read_bit;
+        break;
+    case CAN_Fun_Code_03:
+        pAns = &getAnswer_Read_HoldingReg;
+        break;
+    case CAN_Fun_Code_04:
+        pAns = &getAnswer_Write_InputReg;
+        break;
+    case CAN_Fun_Code_05:
+        pAns = &getAnswer_Write_bit;
+        break;
+    case CAN_Fun_Code_06:
+        pAns = &getAnswer_Write_HoldingReg;
+        break;
+    case CAN_Fun_Code_10:
+        pAns = &getAnswer_Write_MultiHoldingReg;
+        break;
+    default:
+        break;
+    pAns(RxMsg,ans);
+  }
 }
 void TCP_Modbus_Recv()
 {
