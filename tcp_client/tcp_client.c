@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 		stModbus_TCPHead.usLength = 10;
 		stModbus_TCPHead.unit_id = 1;
 		
-		sendbuf[7] = 1;
+		sendbuf[7] = 0x03;
 		sendbuf[8] = 3;
 		sendbuf[9] = 0;
 		sendbuf[10] = 12;
@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
     	if (argc != 2)                     
     	{   argv[1] = "192.168.1.136";
         	printf ("Using: default HOST IP (192.168.x.136).\n");
-        	return (0);
     	}
 
     	/* Get the Socket file descriptor */
@@ -89,20 +88,18 @@ int main(int argc, char *argv[])
                 	return (0);
                 
             	case  0:
-                	close(sockfd);
-                	return(0);
+                	break;
               
             	default:
                 	printf ("OK: Receviced numbytes = %d\n", num);
 					stModbus_TCPHead.usSerialNum++;
 					memcpy(&sendbuf, (unsigned char*)&stModbus_TCPHead,7);
 					send(sockfd, sendbuf, 12, 0);
-
                 	break;
         	}
-        
-        	revbuf[num] = '\0';
+            revbuf[num] = '\0';
         	printf ("OK: Receviced string is: %s\n", revbuf);
+        	
     	}
 
     	close (sockfd);

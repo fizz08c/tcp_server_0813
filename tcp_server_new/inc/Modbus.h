@@ -170,15 +170,17 @@ void Read_bit_Act(SModbus_TCP_DataUnit* RxMsg);//0x02
 //读保持寄存器
 void Read_HoldingReg_Act(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* TxMsg);//0x03
 //读输入寄存器
-void Read_InputReg_Act(SModbus_TCP_DataUnit* RxMsg);//0x04
+void Read_InputReg_Act(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* TxMsg);//0x04
 //写单个线圈寄存器
-void Write_bit_Act(SModbus_TCP_DataUnit* RxMsg);//0x05
+void Write_bit_Act(SModbus_TCP_DataUnit* TxMsg, ushort slaveid, ushort addr, ushort val);//0x05
 //写单个保持寄存器
-void Write_SingleHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg);//0x06
+void Write_SingleHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* TxMsg);//0x06
 //写多个保持寄存器
-void Write_MultiHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg);//0x10
+void Write_MultiHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* TxMsg);//0x10
 //响应收到的报文
 void ModbusRsData_Act(SModbus_TCP_DataUnit* RxMsg);
+void PrintModbus_Data(SModbus_TCP_DataUnit* data,int lenth);
+void PrintMPBA(SModbus_TCP_DataUnit* data);
 
 ////*****************************************************************************
 ////函数功能：连续8位合成16位

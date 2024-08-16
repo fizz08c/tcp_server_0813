@@ -243,19 +243,20 @@ ushort strlen_uc(const unsigned char* ustr) {
 //函数功能：从Modbus-TCP报文中获取TCP头信息并拆除
 //入参：*data-数据指针，*head-TCP头结构体指针
 //出参：修改后的TCP头结构体指针
+void printstr(uchar* src,int len,char* s)
+{
+  for(int i = 0;i<len;i++)
+  {
+    printf("%s[%d]=%d\t",s,i,src[i]);
+  }
+  printf("\n");
+}
 //*****************************************************************************
 void get_MBAP_FromTCPdata(unsigned char* data,Modbus_TCP* head) {
     // 确保传入的数据长度足够
-    ushort slen =strlen_uc(data);
-    if (slen <= 7) 
-    {
-        return;
-    }
     // 提取Modbus TCP头部信息
-    head->usSerialNum = (data[0] << 8) | data[1];
-    head->usRes = (data[2] << 8) | data[3];
-    head->usLength = (data[4] << 8) | data[5];
-    head->unit_id = data[6];
+    memcpy(head,data,7);
+    printstr(data,7,"head");
 }
 //*****************************************************************************
 //函数功能：从Modbus-TCP报文中获取Modbus报文数据
@@ -265,18 +266,14 @@ void get_MBAP_FromTCPdata(unsigned char* data,Modbus_TCP* head) {
 void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit* res)
 {
     ushort slen =strlen_uc(src);
-    get_MBAP_FromTCPdata(src,&rxModbus_TCPHead);
-    memcpy(pdata_modbus,(void*)(src+7),slen-7);
+    get_MBAP_FromTCPdata(src,&(res->head));
+    memcpy(pdata_modbus,(void*)(src+7),505*(sizeof(uchar)));
     ushort src_len =strlen_uc(pdata_modbus);
-    if(strlen_uc(pdata_modbus) < 1)
-    {
-        return;
-    }
     //modbus功能码
     res->modbus_funcode =pdata_modbus[0];
+    res->modbus_addr =(pdata_modbus[1]<<8)+pdata_modbus[2];
     //modbus数据域
-    ushort slenofdata = src_len-1>MAX_LEN_MODBUSTCPDATA?MAX_LEN_MODBUSTCPDATA:src_len-1;
-    memcpy(res->data,(void*)(pdata_modbus+1),slenofdata); 
+    memcpy(res->data,(void*)(pdata_modbus+1),504*(sizeof(uchar))); 
 }
 
 //读离散输入寄存器
@@ -516,7 +513,21 @@ void Write_MultiHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg, SModbus_TCP_DataUnit
     // 设置Modbus头信息长度字段
     TxMsg->head.usLength = 6;  // 功能码1字节 + 2字节起始地址 + 2字节寄存器数量，总共5字节 + 单元标识符1字节
 }
-
+void PrintModbus_Data(SModbus_TCP_DataUnit* data,int length)
+{
+    PrintMPBA(data);
+    printf("funcode=%d\n",data->modbus_funcode);
+    printstr(data->data,length,"data");
+    
+}
+void PrintMPBA(SModbus_TCP_DataUnit* data)
+{
+    printf("Num=%d\t",data->head.usSerialNum);
+    printf("usRes=%d\t",data->head.usRes);
+    printf("length=%d\t",data->head.usLength);
+    printf("id=%d\n",data->head.unit_id);
+    
+}
 //响应收到的报文
 void ModbusRsData_Act(SModbus_TCP_DataUnit* RxMsg)
 {

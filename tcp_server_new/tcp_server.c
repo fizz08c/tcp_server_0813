@@ -110,6 +110,8 @@ int main ()
 
 					if (0 < (recv(nsockfd, revbuf, LENGTH, 0)))
 					{
+						uchar* pdata = (uchar*)malloc(LENGTH);
+						SModbus_TCP_DataUnit smodbus_data;
 						printf("revbuf[0] = %d\n",revbuf[0]);
 						printf("revbuf[1] = %d\n",revbuf[1]);
 						printf("revbuf[2] = %d\n",revbuf[2]);
@@ -122,6 +124,8 @@ int main ()
 						printf("revbuf[9] = %d\n",revbuf[9]);
 						printf("revbuf[10] = %d\n",revbuf[10]);
 						printf("revbuf[11] = %d\n",revbuf[11]);
+						TCP_Modbus_Analyze(revbuf,pdata,&smodbus_data);
+						PrintModbus_Data(&smodbus_data,10);
 					}
 
                 	printf("OK: Sent %d bytes sucessful, please enter again.\n", num);  
