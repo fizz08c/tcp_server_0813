@@ -33,18 +33,16 @@ typedef struct  {
 }CanSt4X;
 
 
-
-#define CAN_Fun_Code_02                 0x2
-#define CAN_Fun_Code_03                 0x3
-#define CAN_Fun_Code_04                 0x4
-#define CAN_Fun_Code_05                 0x5
-#define CAN_Fun_Code_06                 0x6
-#define CAN_Fun_Code_10                 0x10
-#define CAN_Fun_Code_64                 0x64
-#define CAN_Fun_Code_65                 0x65
+#define Modbus_Fun_Code_01                 0x1
+#define Modbus_Fun_Code_02                 0x2
+#define Modbus_Fun_Code_03                 0x3
+#define Modbus_Fun_Code_04                 0x4
+#define Modbus_Fun_Code_05                 0x5
+#define Modbus_Fun_Code_06                 0x6
+#define Modbus_Fun_Code_10                 0x10
+#define Modbus_Fun_Code_64                 0x64
+#define Modbus_Fun_Code_65                 0x65
 #define MAX_LEN_MODBUSTCPDATA           (252)
-#define MPBA_LENGTH                     (7)
-#define MODBUSFUNCODE_LENTH             (1)
 
 extern volatile ushort Fun_Code ;
 extern volatile ushort Start_address ;
@@ -82,18 +80,18 @@ typedef union{
 typedef union{
     ushort YX_WORD;
     struct {
-        ushort uiHaltState:1;             //
-        ushort uiStandbyState:1;          //
-        ushort uiRunState:1;              //
-        ushort uiFaultState:1;            //
-        ushort uiAlarmState:1;            //
-        ushort uiSetState:1;              //
-        ushort uiFarStopState:1;          //
-        ushort uiOnGridState:1;           //
-        ushort uiOffGridState:1;          //
-        ushort uiOverLoadState:1;         //
+        ushort uiHaltState:1;             //1-停机
+        ushort uiStandbyState:1;          //1-待机
+        ushort uiRunState:1;              //1-运行
+        ushort uiFaultState:1;            //1-故障
+        ushort uiAlarmState:1;            //1-告警
+        ushort uiSetState:1;              //1-远程，0-就地
+        ushort uiFarStopState:1;          //1-急停
+        ushort uiOnGridState:1;           //1-并网
+        ushort uiOffGridState:1;          //1-离网
+        ushort uiOverLoadState:1;         //1-过载
         ushort uiRes1:3;                  //
-        ushort uiBMSIn:1;                 //
+        ushort uiBMSIn:1;                 //1-故障有效
         ushort uiRes2:2;                  //
     } BIT;
 } CAN_YX_WORD;
@@ -118,7 +116,99 @@ typedef struct
   unsigned char data[MAX_LEN_MODBUSTCPDATA];
 }SModbus_TCP_DataUnit;
 typedef void (*ResponseAct)(SModbus_TCP_DataUnit*);
-typedef void (*GetAnswerFrame)(SModbus_TCP_DataUnit*,SModbus_TCP_DataUnit*);
+typedef struct 
+{
+    /* data */
+};
+
+void sSetFaultReset(ushort value);
+ushort sGetFaultReset();
+void sSetDeviceStart(ushort value);
+ushort sGetDeviceStart();
+void sSetDeviceHalt(ushort value);
+ushort sGetDeviceHalt();
+void sSetRemoteStop(ushort value);
+ushort sGetRemoteStop();
+void sSetClearCharge(ushort value);
+ushort sGetClearCharge();
+void sSetClearDischarge(ushort value);
+ushort sGetClearDischarge();
+void sSetRemoteMode(ushort value);
+ushort sGetRemoteMode();
+
+void sSetVolt_A(ushort value);
+ushort sGetVolt_A();
+void sSetVolt_B(ushort value);
+ushort sGetVolt_B();
+void sSetVolt_C(ushort value);
+ushort sGetVolt_C();
+void sSetCurr_A(ushort value);
+ushort sGetCurr_A();
+void sSetCurr_B(ushort value);
+ushort sGetCurr_B();
+void sSetCurr_C(ushort value);
+ushort sGetCurr_C();
+void sSetGridFreq(ushort value);
+ushort sGetGridFreq();
+void sSetActivePower_A(ushort value);
+ushort sGetActivePower_A();
+void sSetActivePower_B(ushort value);
+ushort sGetActivePower_B();
+void sSetActivePower_C(ushort value);
+ushort sGetActivePower_C();
+void sSetActivePower_ALL(ushort value);
+ushort sGetActivePower_ALL();
+void sSetReactivePower_A(ushort value);
+ushort sGetReactivePower_A();
+void sSetReactivePower_B(ushort value);
+ushort sGetReactivePower_B();
+void sSetReactivePower_C(ushort value);
+ushort sGetReactivePower_C();
+void sSetReactivePower_ALL(ushort value);
+ushort sGetReactivePower_ALL();
+void sSetApparentPower_A(ushort value);
+ushort sGetApparentPower_A();
+void sSetApparentPower_B(ushort value);
+ushort sGetApparentPower_B();
+void sSetApparentPower_C(ushort value);
+ushort sGetApparentPower_C();
+void sSetApparentPower_ALL(ushort value);
+ushort sGetApparentPower_ALL();
+void sSetPowerFactor_A(ushort value);
+ushort sGetPowerFactor_A();
+void sSetPowerFactor_B(ushort value);
+ushort sGetPowerFactor_B();
+void sSetPowerFactor_C(ushort value);
+ushort sGetPowerFactor_C();
+void sSetPowerFactor_ALL(ushort value);
+ushort sGetPowerFactor_ALL();
+void sSetImportPower(ushort value);
+ushort sGetImportPower();
+void sSetImportVolt(ushort value);
+ushort sGetImportVolt();
+void sSetImportCurr(ushort value);
+ushort sGetImportCurr();
+void sSetRadiatorTem(ushort value);
+ushort sGetRadiatorTem();
+void sSetRadiatorTem(ushort value);
+ushort sGetRadiatorTem();
+
+void sSetWorkingMode(ushort value);
+ushort sGetWorkingMode();
+void sSetConstant_Volt(ushort value);
+ushort sGetConstant_Volt();
+void sSetConstant_Curr(ushort value);
+ushort sGetConstant_Curr();
+void sSetConstantPower_ActivePowerExpect(ushort value);
+ushort sGetConstantPower_ActivePowerExpect();
+void sSetConstantPower_ReactivePowerExpect(ushort value);
+ushort sGetConstantPower_ReactivePowerExpect();
+void sSetOn_off_Grid(ushort value);
+ushort sGetOn_off_Grid();
+void sSetoff_Grid_Volt(ushort value);
+ushort sGetoff_Grid_Volt();
+void sSetoff_Grid_Freq(ushort value);
+ushort sGetoff_Grid_Freq();
 
 
 void sSetYear(ushort value);
@@ -132,8 +222,6 @@ uint sGetActivePower();
 void sSetReactivePower(uint value);
 uint sGetReactivePower();
 
-void sFlashControl(ushort value);
-ushort sFlashGet();
 
 //*****************************************************************************
 //函数功能：Modbus数据初始化
@@ -230,6 +318,12 @@ extern ushort Modbus_Proc_Data(unsigned char *pdata, const ushort len);
 //出参：crc校验值
 //*****************************************************************************
 extern ushort CRC16_MODBUS(unsigned char *puchMsg, uint usDataLen);
+//*****************************************************************************
+//函数功能：打印数组
+//入参：*Arr——数据指针;Length——打印长度
+//出参：无
+//*****************************************************************************
+void PrintfUcArr(const uchar *Arr, uchar Length);
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.
