@@ -1,19 +1,26 @@
-EXEC = ./bin/tcp_client 
+EXEC = ./bin/tcp_client
 OBJS = tcp_client.o
-SRC  = tcp_client.c
+SRC = tcp_client.c
 
 #CC = aarch64-buildroot-linux-gnu-gcc
 CC = gcc
 CFLAGS += -O2 -Wall
 LDFLAGS += 
 
-all:$(EXEC)
+# Add a POST_BUILD target to remove the .o files after building the executable
+POST_BUILD = post_build_cleanup
 
-$(EXEC):$(OBJS)
+all: $(EXEC) $(POST_BUILD)
+
+$(EXEC): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) -pthread
 
-%.o:%.c
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@ -pthread
 
+# Define the post-build cleanup task
+post_build_cleanup:
+	@rm -vf $(OBJS)
+
 clean:
-	@rm -vf $(EXEC) *.o *~
+	@rm -vf $(EXEC) $(OBJS) *~

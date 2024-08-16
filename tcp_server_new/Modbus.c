@@ -450,7 +450,7 @@ void get_MBAP_FromTCPdata(unsigned char *data, Modbus_TCP *head)
 // 入参：*src-源数据指针，*pdata_modbus-modbus报文指针,*res-modbus数据结构体指针
 // 出参：修改后的modbus报文指针、数据结构体指针
 //*****************************************************************************
-void TCP_Modbus_Analyze(unsigned char *src, unsigned char *pdata_modbus, SModbus_TCP_DataUnit_Rx *res)
+void TCP_Modbus_Analyze(unsigned char *src, unsigned char *pdata_modbus, SModbus_TCP_DataUnit *res)
 {
     ushort slen = strlen_uc(src);
     get_MBAP_FromTCPdata(src, &rxModbus_TCPHead);
@@ -468,11 +468,11 @@ void TCP_Modbus_Analyze(unsigned char *src, unsigned char *pdata_modbus, SModbus
 }
 
 // 读离散输入寄存器
-void Read_bit(SModbus_TCP_DataUnit_Rx *RsMsg) // 0x02
+void Read_bit(SModbus_TCP_DataUnit *RsMsg) // 0x02
 {
 }
 // 读保持寄存器
-void Read_HoldingReg(SModbus_TCP_DataUnit_Rx *RsMsg) // 0x03
+void Read_HoldingReg(SModbus_TCP_DataUnit *RsMsg) // 0x03
 {
     void *senddata = NULL;
     Start_address = iDataCom_8to16(RsMsg->data + 1);
@@ -482,24 +482,24 @@ void Read_HoldingReg(SModbus_TCP_DataUnit_Rx *RsMsg) // 0x03
     TCP_Modbus_Send(RsMsg->modbus_funcode, Start_address, Modbus_Length, (unsigned char *)senddata);
 }
 // 读输入寄存器
-void Read_InputReg(SModbus_TCP_DataUnit_Rx *RsMsg) // 0x04
+void Read_InputReg(SModbus_TCP_DataUnit *RsMsg) // 0x04
 {
 }
 // 写单个线圈寄存器
-void Write_bit(SModbus_TCP_DataUnit_Rx *RsMsg) // 0x05
+void Write_bit(SModbus_TCP_DataUnit *RsMsg) // 0x05
 {
 }
 // 写单个保持寄存器
-void Write_SingleHoldingReg(SModbus_TCP_DataUnit_Rx *RsMsg) // 0x06
+void Write_SingleHoldingReg(SModbus_TCP_DataUnit *RsMsg) // 0x06
 {
 }
 // 写多个保持寄存器
-void Write_MultiHoldingReg(SModbus_TCP_DataUnit_Rx *RsMsg) // 0x10
+void Write_MultiHoldingReg(SModbus_TCP_DataUnit *RsMsg) // 0x10
 {
 }
 
 // 响应收到的报文
-void ModbusRsData_Act(SModbus_TCP_DataUnit_Rx *RsMsg)
+void ModbusRsData_Act(SModbus_TCP_DataUnit *RsMsg)
 {
     ResponseAct pAct;
     switch (RsMsg->modbus_funcode)

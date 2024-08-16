@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
 
     	/* Check parameters number */
     	if (argc != 2)                     
-    	{    
-        	printf ("Usage: client HOST IP (ex: ./client 192.168.7.239).\n");
+    	{   argv[1] = "192.168.1.136";
+        	printf ("Using: default HOST IP (192.168.x.136).\n");
         	return (0);
     	}
 
@@ -64,8 +64,13 @@ int main(int argc, char *argv[])
     	/* Try to connect the remote */
     	if (connect(sockfd, (struct sockaddr *)&remote_addr,  sizeof(struct sockaddr)) == -1) 
     	{
-        	printf ("ERROR: Failed to connect to the host!\n");
-        	return (0);
+			argv[1] = "192.168.2.136";
+			if(connect(sockfd, (struct sockaddr *)&remote_addr,  sizeof(struct sockaddr)) == -1)
+			{
+              printf ("ERROR: Failed to connect to the host!\n");
+        	  return (0);
+			}
+        	
     	} else {
         	printf ("OK: Have connected to the %s\n",argv[1]);
     	}

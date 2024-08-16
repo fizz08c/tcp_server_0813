@@ -36,7 +36,7 @@
 #	rm -f *.o $(TARGET)
 
 # 变量定义
-TARGET = tcp_server
+TARGET = ./bin/tcp_server
 CC = aarch64-buildroot-linux-gnu-gcc
 CFLAGS = -Iinc -Wall -g
 LDFLAGS = 
@@ -45,8 +45,11 @@ LDFLAGS =
 SRC_FILES = Modbus.c tcp_server.c
 OBJ_FILES = $(SRC_FILES:.c=.o)
 
+# 后处理目标，生成可执行文件后删除.o文件
+POST_BUILD = post_build_cleanup
+
 # 默认规则
-all: $(TARGET)
+all: $(TARGET) $(POST_BUILD)
 
 # 链接目标文件生成可执行文件
 $(TARGET): $(OBJ_FILES)
@@ -55,6 +58,10 @@ $(TARGET): $(OBJ_FILES)
 # 生成对象文件规则
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+# 后处理清除.o文件
+post_build_cleanup:
+	@rm -vf $(OBJ_FILES)
 
 # 清理规则
 .PHONY: clean

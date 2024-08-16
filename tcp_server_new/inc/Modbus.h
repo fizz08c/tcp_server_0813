@@ -107,14 +107,14 @@ unsigned char ucCRC_H;
 unsigned char ucCRC_L;
 }Can_Message_Modbus;
 
-/*Modbus响应报文结构体*/
+/*Modbus报文结构体*/
 typedef struct 
 {
   Modbus_TCP head;
   unsigned char modbus_funcode;
   unsigned char data[252];
-}SModbus_TCP_DataUnit_Rx;
-typedef void (*ResponseAct)(SModbus_TCP_DataUnit_Rx*);
+}SModbus_TCP_DataUnit;
+typedef void (*ResponseAct)(SModbus_TCP_DataUnit*);
 typedef struct 
 {
     /* data */
@@ -251,21 +251,21 @@ void TCP_Modbus_Send(ushort FunCode, ushort startaddr, ushort len, unsigned char
 
 ushort strlen_uc(const unsigned char* ustr);
 void get_MBAP_FromTCPdata(unsigned char* data,Modbus_TCP* head);
-void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit_Rx* res);
+void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit* res);
 //读离散输入寄存器
-void Read_bit_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x02
+void Read_bit_Act(SModbus_TCP_DataUnit* RxMsg);//0x02
 //读保持寄存器
-void Read_HoldingReg_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x03
+void Read_HoldingReg_Act(SModbus_TCP_DataUnit* RxMsg,SModbus_TCP_DataUnit* TxMsg);//0x03
 //读输入寄存器
-void Read_InputReg_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x04
+void Read_InputReg_Act(SModbus_TCP_DataUnit* RxMsg);//0x04
 //写单个线圈寄存器
-void Write_bit_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x05
+void Write_bit_Act(SModbus_TCP_DataUnit* RxMsg);//0x05
 //写单个保持寄存器
-void Write_SingleHoldingReg_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x06
+void Write_SingleHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg);//0x06
 //写多个保持寄存器
-void Write_MultiHoldingReg_Act(SModbus_TCP_DataUnit_Rx* RsMsg);//0x10
+void Write_MultiHoldingReg_Act(SModbus_TCP_DataUnit* RxMsg);//0x10
 //响应收到的报文
-void ModbusRsData_Act(SModbus_TCP_DataUnit_Rx* RsMsg);
+void ModbusRsData_Act(SModbus_TCP_DataUnit* RxMsg);
 
 ////*****************************************************************************
 ////函数功能：连续8位合成16位
