@@ -463,7 +463,7 @@ int  TCP_Modbus_Analyze(unsigned char *src, unsigned char *pdata_modbus, SModbus
     //modbus功能码
     res->modbus_funcode =pdata_modbus[0];
      // modbus数据域
-    memcpy(res->data, (void *)(pdata_modbus + 1), MAX_LEN_MODBUSTCPDATA-MODBUS_FUNCODE_LENGTH);
+    memcpy(res->data, (void *)(pdata_modbus + 1), MAX_LEN_MODBUSTCPDATA);
     return 0;
 }
 
