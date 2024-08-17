@@ -426,10 +426,7 @@ ushort strlen_uc(const unsigned char *ustr)
     }
     return s - ustr;
 }
-//*****************************************************************************
-//函数功能：从Modbus-TCP报文中获取TCP头信息并拆除
-//入参：*data-数据指针，*head-TCP头结构体指针
-//出参：修改后的TCP头结构体指针
+
 void printstr(uchar* src,int len,char* s)
 {
   for(int i = 0;i<len;i++)
@@ -438,6 +435,10 @@ void printstr(uchar* src,int len,char* s)
   }
   printf("\n");
 }
+//*****************************************************************************
+//函数功能：从Modbus-TCP报文中获取TCP头信息并拆除
+//入参：*data-数据指针，*head-TCP头结构体指针
+//出参：修改后的TCP头结构体指针
 //*****************************************************************************
 void get_MBAP_FromTCPdata(unsigned char *data, Modbus_TCP *head)
 {
@@ -451,30 +452,19 @@ void get_MBAP_FromTCPdata(unsigned char *data, Modbus_TCP *head)
 // 入参：*src-源数据指针，*pdata_modbus-modbus报文指针,*res-modbus数据结构体指针
 // 出参：修改后的modbus报文指针、数据结构体指针
 //*****************************************************************************
-void TCP_Modbus_Analyze(unsigned char *src, unsigned char *pdata_modbus, SModbus_TCP_DataUnit *res)
+int  TCP_Modbus_Analyze(unsigned char *src, unsigned char *pdata_modbus, SModbus_TCP_DataUnit *res)
 {
-    ushort slen = strlen_uc(src);
-    get_MBAP_FromTCPdata(src, &rxModbus_TCPHead);
-    memcpy(pdata_modbus, (void *)(src + 7), slen - 7);
-    ushort src_len = strlen_uc(pdata_modbus);
-    if (strlen_uc(pdata_modbus) < 1)
+    if(src == NULL || pdata_modbus == NULL || res == NULL)
     {
-        return;
+        return -1;
     }
-    // modbus功能码
-    res->modbus_funcode = pdata_modbus[0];
-    // modbus数据域
-    ushort slenofdata = src_len - 1 > MAX_LEN_MODBUSTCPDATA ? MAX_LEN_MODBUSTCPDATA : src_len - 1;
-    memcpy(res->data, (void *)(pdata_modbus + 1), slenofdata);
-    ushort slen =strlen_uc(src);
     get_MBAP_FromTCPdata(src,&(res->head));
-    memcpy(pdata_modbus,(void*)(src+7),505*(sizeof(uchar)));
-    ushort src_len =strlen_uc(pdata_modbus);
+    memcpy(pdata_modbus,(void*)(src+MBPA_LENGTH),MAX_BUF_LENGTH-MBPA_LENGTH);
     //modbus功能码
     res->modbus_funcode =pdata_modbus[0];
-    res->modbus_addr =(pdata_modbus[1]<<8)+pdata_modbus[2];
-    //modbus数据域
-    memcpy(res->data,(void*)(pdata_modbus+1),504*(sizeof(uchar))); 
+     // modbus数据域
+    memcpy(res->data, (void *)(pdata_modbus + 1), MAX_LEN_MODBUSTCPDATA-MODBUS_FUNCODE_LENGTH);
+    return 0;
 }
 
 // 读离散输入寄存器

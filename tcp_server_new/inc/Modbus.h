@@ -42,7 +42,10 @@ typedef struct  {
 #define Modbus_Fun_Code_10                 0x10
 #define Modbus_Fun_Code_64                 0x64
 #define Modbus_Fun_Code_65                 0x65
-#define MAX_LEN_MODBUSTCPDATA           (252)
+#define MAX_LEN_MODBUSTCPDATA              (252)
+#define MODBUS_FUNCODE_LENGTH              (1)
+#define MAX_BUF_LENGTH                     (512)
+#define MBPA_LENGTH                        (7)
 
 extern volatile ushort Fun_Code ;
 extern volatile ushort Start_address ;
@@ -252,7 +255,7 @@ void TCP_Modbus_Send(ushort FunCode, ushort startaddr, ushort len, unsigned char
 
 ushort strlen_uc(const unsigned char* ustr);
 void get_MBAP_FromTCPdata(unsigned char* data,Modbus_TCP* head);
-void TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit* res);
+int TCP_Modbus_Analyze(unsigned char* src,unsigned char* pdata_modbus,SModbus_TCP_DataUnit* res);
 //读离散输入寄存器
 void Read_bit_Act(SModbus_TCP_DataUnit* RxMsg);//0x02
 //读保持寄存器

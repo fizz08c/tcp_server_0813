@@ -116,7 +116,7 @@ int main ()
 						printf("revbuf[1] = %d\n",revbuf[1]);
 						printf("revbuf[2] = %d\n",revbuf[2]);
 						printf("revbuf[3] = %d\n",revbuf[3]);
-						printf("revbuf[4] = %d\n",revbuf[4]);
+						printf("revbuf[4] = %d\n",revbuf[4]); 
 						printf("revbuf[5] = %d\n",revbuf[5]);
 						printf("revbuf[6] = %d\n",revbuf[6]);
 						printf("revbuf[7] = %d\n",revbuf[7]);
@@ -124,7 +124,11 @@ int main ()
 						printf("revbuf[9] = %d\n",revbuf[9]);
 						printf("revbuf[10] = %d\n",revbuf[10]);
 						printf("revbuf[11] = %d\n",revbuf[11]);
-						TCP_Modbus_Analyze(revbuf,pdata,&smodbus_data);
+						int ret = TCP_Modbus_Analyze(revbuf,pdata,&smodbus_data);
+						if(-1 == ret)
+						{
+							break;
+						}
 						PrintModbus_Data(&smodbus_data,10);
 					}
 
